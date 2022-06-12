@@ -7,6 +7,10 @@ let
   SSIDpassword = "";
   interface = "";
   hostname = "nixos-raspberry3p";
+  allowedTCPPorts = [];
+  allowedUDPPorts = [];
+  eth0Address = "";
+  wlan0Address = "";
 in {
   boot.loader.grub.enable = false;
   boot.loader.generic-extlinux-compatible.enable = true;
@@ -84,14 +88,23 @@ in {
 
   networking = {
     interfaces.wlan0 = {
-      useDHCP = true;
+      useDHCP = false;
+      ipv4.addressed = [{
+        address = wlan0Address;
+        prefixLength = 24;
+      }];
     };
 
     interfaces.eth0 = {
-      useDHCP = true;
+      useDHCP = false;
+      ipv4.addressed = [{
+        address = eth0Address;
+        prefixLength = 24;
+      }];
     };
 
     hostName = hostname;
+    useDHCP = false;
 
     wireless.enable = true;
     wireless.interfaces = [ interface ];
@@ -101,8 +114,8 @@ in {
   networking.firewall = {
     enable = true;
     allowPing = true;
-    allowedTCPPorts = [];
-    allowedUDPPorts = [];
+    allowedTCPPorts = allowedTCPPorts;
+    allowedUDPPorts = allowedTCPPorts;
   };
 
   users = {
