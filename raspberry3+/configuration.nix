@@ -89,7 +89,7 @@ in {
   networking = {
     interfaces.wlan0 = {
       useDHCP = false;
-      ipv4.addressed = [{
+      ipv4.addresses = [{
         address = wlan0Address;
         prefixLength = 24;
       }];
@@ -97,7 +97,7 @@ in {
 
     interfaces.eth0 = {
       useDHCP = false;
-      ipv4.addressed = [{
+      ipv4.addresses = [{
         address = eth0Address;
         prefixLength = 24;
       }];
