@@ -6,7 +6,7 @@ let
   SSID = "";
   SSIDpassword = "";
   interface = "";
-  hostname = "nixos-raspberry3p";
+  hostname = "raspberry3p";
   allowedTCPPorts = [];
   allowedUDPPorts = [];
   eth0Address = "";
@@ -112,7 +112,7 @@ in {
   };
 
   networking.firewall = {
-    enable = true;
+    enable = false;
     allowPing = true;
     allowedTCPPorts = allowedTCPPorts;
     allowedUDPPorts = allowedTCPPorts;
