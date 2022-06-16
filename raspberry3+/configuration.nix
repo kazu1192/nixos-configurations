@@ -11,6 +11,8 @@ let
   allowedUDPPorts = [];
   eth0Address = "";
   wlan0Address = "";
+  defaultGateway = "";
+  nameservers = [ "1.1.1.1" "8.8.8.8"];
 in {
   boot.loader.grub.enable = false;
   boot.loader.generic-extlinux-compatible.enable = true;
@@ -104,11 +106,14 @@ in {
     };
 
     hostName = hostname;
-    useDHCP = false;
+    useDHCP = true;
 
-    wireless.enable = true;
+    wireless.enable = false;
     wireless.interfaces = [ interface ];
     wireless.networks."${SSID}".psk = "${SSIDpassword}"; 
+
+    defaultGateway.address = defaultGateway;
+    nameservers = nameservers;
   };
 
   networking.firewall = {
