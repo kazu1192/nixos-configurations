@@ -49,7 +49,7 @@ in {
     "/nas/data" = {
       device = "nas/data";
       fsType = "zfs";
-      options = [ "nofail" "x-systemd.device-timeout=10" ];
+      options = [ "nofail" "x-systemd.device-timeout=1" ];
     };
   };
 
