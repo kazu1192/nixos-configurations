@@ -3,16 +3,16 @@
 let
   user = "nixos";
   password = "nix";
-  SSID = "";
-  SSIDpassword = "";
-  interface = "";
+  hostId = "b6c232ed";
   hostname = "raspberry3p";
-  allowedTCPPorts = [];
-  allowedUDPPorts = [];
   eth0Address = "";
   wlan0Address = "";
   defaultGateway = "";
-  nameservers = [ "1.1.1.1" "8.8.8.8"];
+  nameservers = [ "1.1.1.1" "8.8.8.8" ];
+  SSID = "";
+  SSIDpassword = "";
+  allowedTCPPorts = [ 22 80 443 2002 6600 ];
+  allowedUDPPorts = [ 22 80 443 2002 6600 ];
 in {
   boot.loader.grub.enable = false;
   boot.loader.generic-extlinux-compatible.enable = true;
@@ -20,12 +20,36 @@ in {
   boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.kernelParams = [
     "cma=256M" 
+    "console=ttyS1,115200n8"
   ];
+
+  # raspberryPi /boot/config
+  boot.loader.raspberryPi.firmwareConfig = ''
+    dtparam=audio=on
+  '';
+
+  boot.initrd.supportedFilesystems = [ "zfs" ];
+  boot.initrd.availableKernelModules = [ "usb_storage" "usbhid" ];
+  boot.supportedFilesystems = [ "zfs" ];
+
+  nixpkgs.config.allowBroken = true;
+
+  services.udev.extraRules = ''
+    ACTION=="add|change", KERNEL=="sd[a-z]*[0-9]*|mmcblk[0-9]*p[0-9]*|nvme[0-9]*n[0-9]*p[0-9]*", ENV{ID_FS_TYPE}=="zfs_member", ATTR{../queue/scheduler}="none"
+  '';
+
+  powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
 
   fileSystems = {
     "/" = {
       device = "/dev/disk/by-label/NIXOS_SD";
       fsType = "ext4";
+    };
+
+    "/nas/data" = {
+      device = "nas/data";
+      fsType = "zfs";
+      options = [ "nofail" "x-systemd.device-timeout=10" ];
     };
   };
 
@@ -39,6 +63,7 @@ in {
     git gh tig ghq
     vim neovim 
     zellij screen tmux
+    gptfdisk zfs
     tailscale
     libraspberrypi
   ];
@@ -89,27 +114,23 @@ in {
   };
 
   networking = {
-    interfaces.wlan0 = {
-      useDHCP = false;
-      ipv4.addresses = [{
-        address = wlan0Address;
-        prefixLength = 24;
-      }];
-    };
-
-    interfaces.eth0 = {
-      useDHCP = false;
-      ipv4.addresses = [{
-        address = eth0Address;
-        prefixLength = 24;
-      }];
-    };
-
+    hostId = hostId;
     hostName = hostname;
-    useDHCP = true;
+    dhcpcd.enable = true;
+    usePredictableInterfaceNames = false;
+
+    interfaces.eth0.ipv4.addresses = [{
+      address = eth0Address;
+      prefixLength = 24;
+    }];
+
+    interfaces.wlan0.ipv4.addresses = [{
+      address = wlan0Address;
+      prefixLength = 24;
+    }];
 
     wireless.enable = false;
-    wireless.interfaces = [ interface ];
+    wireless.interfaces = [ "wlan0" ];
     wireless.networks."${SSID}".psk = "${SSIDpassword}"; 
 
     defaultGateway.address = defaultGateway;
