@@ -9,48 +9,29 @@ let
   wlan0Address = "";
   defaultGateway = "";
   nameservers = [ "1.1.1.1" "8.8.8.8" ];
-  SSID = "";
-  SSIDpassword = "";
   allowedTCPPorts = [ 22 80 443 2002 6600 ];
   allowedUDPPorts = [ 22 80 443 2002 6600 ];
 in {
   boot.loader.grub.enable = false;
   boot.loader.generic-extlinux-compatible.enable = true;
 
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelPackages = pkgs.linuxPackages_5_4;
   boot.kernelParams = [
     "cma=256M" 
     "console=ttyS1,115200n8"
   ];
+
+  # Comment out after initial installation.
+  imports = [ ./zfs.nix ];
 
   # raspberryPi /boot/config
   boot.loader.raspberryPi.firmwareConfig = ''
     dtparam=audio=on
   '';
 
-  boot.initrd.supportedFilesystems = [ "zfs" ];
-  boot.initrd.availableKernelModules = [ "usb_storage" "usbhid" ];
-  boot.supportedFilesystems = [ "zfs" ];
-
-  nixpkgs.config.allowBroken = true;
-
-  services.udev.extraRules = ''
-    ACTION=="add|change", KERNEL=="sd[a-z]*[0-9]*|mmcblk[0-9]*p[0-9]*|nvme[0-9]*n[0-9]*p[0-9]*", ENV{ID_FS_TYPE}=="zfs_member", ATTR{../queue/scheduler}="none"
-  '';
-
-  powerManagement.cpuFreqGovernor = lib.mkDefault "ondemand";
-
-  fileSystems = {
-    "/" = {
-      device = "/dev/disk/by-label/NIXOS_SD";
-      fsType = "ext4";
-    };
-
-    "/nas/data" = {
-      device = "nas/data";
-      fsType = "zfs";
-      options = [ "nofail" "x-systemd.device-timeout=1" ];
-    };
+  fileSystems."/" = {
+    device = "/dev/disk/by-label/NIXOS_SD";
+    fsType = "ext4";
   };
 
   swapDevices = [{ device = "/swapfile"; size = 1024; }];
@@ -99,7 +80,7 @@ in {
         name "My ALSA"
         device        "hw:1,0"
         format        "44100:16:2"
-        mixer_type    "hardware"
+        mixer_type    "software"
         mixer_device  "default"
         mixer_control "PCM"
       }
@@ -107,6 +88,8 @@ in {
     network.listenAddress = "any";
     startWhenNeeded = true;
   };
+
+  services.tailscale.enable = true;
 
   hardware = {
     enableRedistributableFirmware = true;
@@ -124,24 +107,25 @@ in {
       prefixLength = 24;
     }];
 
-    interfaces.wlan0.ipv4.addresses = [{
-      address = wlan0Address;
-      prefixLength = 24;
-    }];
+    #interfaces.wlan0.ipv4.addresses = [{
+    #  address = wlan0Address;
+    #  prefixLength = 24;
+    #}];
 
     wireless.enable = false;
-    wireless.interfaces = [ "wlan0" ];
-    wireless.networks."${SSID}".psk = "${SSIDpassword}"; 
+    # wireless.interfaces = [ "wlan0" ];
+    # wireless.networks."${SSID}".psk = "${SSIDpassword}"; 
 
     defaultGateway.address = defaultGateway;
     nameservers = nameservers;
+    resolvconf.dnsExtensionMechanism = false;
   };
 
   networking.firewall = {
     enable = false;
     allowPing = true;
     allowedTCPPorts = allowedTCPPorts;
-    allowedUDPPorts = allowedTCPPorts;
+    allowedUDPPorts = allowedUDPPorts;
   };
 
   users = {
