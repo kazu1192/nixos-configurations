@@ -1,13 +1,11 @@
-# ffmpeg Edit this configuration file to define what should be installed on
-# your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
-
 { config, pkgs, callPackage, ... }:
 
 {
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
+      # ./i3wm.nix
+      ./sway.nix
     ];
 
   # Use the systemd-boot EFI boot loader.
@@ -114,9 +112,7 @@
   # };
 
   programs.light.enable = true;
-
   programs.java.enable = true;
-
   programs.adb.enable = true;
 
   # List services that you want to enable:
@@ -134,44 +130,10 @@
 
   # Enable sound.
   sound.enable = true;
-  hardware.pulseaudio.enable = true;
 
   # Enable bluetooth.
   hardware.bluetooth.enable = true;
   services.blueman.enable = true;
-
-  # Enable the X11 windowing system.
-  services.xserver = {
-    enable = true;
-    layout = "us";
-    # videoDrivers = [ "intel" ];
-    libinput.enable = true;
-
-    desktopManager = {
-      xterm.enable = false;
-    };
-
-    displayManager = {
-      sddm.enable = true;
-      defaultSession = "none+i3";
-    };
-
-    windowManager = {
-      i3 = {
-        enable = true;
-        package = pkgs.i3-gaps;
-        extraPackages = with pkgs; [
-          dmenu #application launcher most people use
-          i3status # gives you the default i3 status bar
-          i3lock #default i3 screen locker
-          i3blocks #if you are planning on using i3blocks over i3status
-        ];
-      };
-    };
-  };
-
-  services.xrdp.enable = true;
-  services.xrdp.defaultWindowManager = "i3";
 
   services.redshift = {
     enable = true;
@@ -219,20 +181,5 @@
     };
   };
 
-  xdg.mime.defaultApplications = {
-    "text/html" = "firefox.desktop";
-    "x-scheme-handler/http" = "firefox.desktop";
-    "x-scheme-handler/https" = "firefox.desktop";
-    "x-scheme-handler/about" = "firefox.desktop";
-    "x-scheme-handler/unknown" = "firefox.desktop";
-  };
-
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken. It‘s perfectly fine and recommended to leave
-  # this value at the release version of the first install of this system.
-  # Before changing this value read the documentation for this option
-  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "22.05"; # Did you read the comment?
+  system.stateVersion = "22.05";
 }
-
