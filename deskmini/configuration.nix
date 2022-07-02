@@ -14,21 +14,8 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # networking.hostName = "nixos"; # Define your hostname.
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-
-  # The global useDHCP flag is deprecated, therefore explicitly set to false here.
-  # Per-interface useDHCP will be mandatory in the future, so this generated config
-  # replicates the default behaviour.
-  # networking.useDHCP = false;
-  # networking.interfaces.enp37s0.useDHCP = true;
-
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
   networking = {
-    hostName = "nixox";
+    hostName = "nixox-dm";
     useDHCP = false;
     interfaces = {
       wlp2s0.useDHCP = true;
@@ -36,29 +23,17 @@
     networkmanager.enable = true;
   };
 
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
   networking.firewall = {
     enable = true;
     checkReversePath = "loose";
-    allowedTCPPorts = [];
-    allowedUDPPorts = [];
+    allowedTCPPorts = [ 22 2002 3389 6600 ];
+    allowedUDPPorts = [ 22 2002 6600 ];
   };
 
   location = {
-    latitude = ;
-    longitude = ;
+    latitude = 35.4;
+    longitude = 139.6;
   };
-
-  # Select internationalisation properties.
-  # i18n = {
-  #   consoleFont = "Lat2-Terminus16";
-  #   consoleKeyMap = "us";
-  #   defaultLocale = "en_US.UTF-8";
-  # };
 
   i18n = {
     defaultLocale = "en_US.UTF-8";
@@ -83,11 +58,18 @@
       fira-code
       fira-code-symbols
       font-awesome
+      nerdfonts
     ];
   };
 
   # Set your time zone.
   time.timeZone = "Asia/Tokyo";
+  services.timesyncd.enable = true;
+
+  # Cleanup to preserve space
+  nix.gc.automatic = true;
+  nix.gc.options = "--delete-order-than 7d";
+  boot.cleanTmpDir = true;
 
   nixpkgs.config = {
     allowUnfree = true;
@@ -100,14 +82,15 @@
     nixos-option
     pavucontrol ffmpeg
     networkmanagerapplet
-    cmake gcc gnumake nodejs 
+    cmake gcc gnumake nodejs cargo
     git gh tig ghq
-    vim neovim tmux zellij
+    vim neovim 
+    tmux zellij
     wget zip unzip
     exa bat fd procs ripgrep
     fzf peco tree
-    termite alacritty terminator
-    zsh starship fish screenfetch
+    termite alacritty
+    zsh fish screenfetch
     rofi conky nitrogen picom
     dunst parcellite volumeicon
     chromium firefox vivaldi
@@ -141,11 +124,10 @@
   # Enable the OpenSSH daemon.
   services.openssh = {
     enable = true;
-    ports = [];
+    ports = [ 2002 ];
     passwordAuthentication = false;
     permitRootLogin = "no";
   };
-  # programs.ssh.askPassword = "";
 
   # Enable CUPS to print documents.
   # services.printing.enable = true;
@@ -159,17 +141,6 @@
   services.blueman.enable = true;
 
   # Enable the X11 windowing system.
-  # services.xserver.enable = true;
-  # services.xserver.layout = "us";
-  # services.xserver.xkbOptions = "eurosign:e";
-
-  # Enable touchpad support.
-  # services.xserver.libinput.enable = true;
-
-  # Enable the KDE Desktop Environment.
-  # services.xserver.displayManager.sddm.enable = true;
-  # services.xserver.desktopManager.plasma5.enable = true;
-  
   services.xserver = {
     enable = true;
     layout = "us";
@@ -181,8 +152,7 @@
     };
 
     displayManager = {
-      # sddm.enable = true;
-      # startx.enable = true;
+      sddm.enable = true;
       defaultSession = "none+i3";
     };
 
@@ -200,6 +170,9 @@
     };
   };
 
+  services.xrdp.enable = true;
+  services.xrdp.defaultWindowManager = "i3";
+
   services.redshift = {
     enable = true;
     brightness = {
@@ -216,31 +189,34 @@
   services.cron = {
     enable = true;
     systemCronJobs = [
-      "* 23 * * *  root  cat /etc/nixos/configuration.nix > /tmp"
+      "* 23 * * *  root  cat /etc/nixos/configuration.nix > /home/host/.dotfiles/nixos/configuration.nix"
     ];
   };
 
-  security.sudo.enable = true;
-
   services.tailscale.enable = true;
+
+  security.sudo.enable = true;
 
   virtualisation.docker.enable = true;
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
-  # users.users.jane = {
-  #   isNormalUser = true;
-  #   extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
-  # };
-
   users.motd = "Hello NixOS!";
-
-  users.users.host = {
-    isNormalUser = true;
-    createHome = true;
-    group = "users";
-    extraGroups = [ "wheel" "networkmanager" "docker" "video" "adbusers" "plugdev" ];
-    shell = pkgs.zsh;
-    uid = 1000;
+  users.users = {
+    host = {
+      isNormalUser = true;
+      createHome = true;
+      password = "nix";
+      group = "users";
+      extraGroups = [ "wheel" "networkmanager" "docker" "video" "adbusers" "plugdev" ];
+      shell = pkgs.zsh;
+    };
+    nixos = {
+      isNormalUser = true;
+      createHome = true;
+      password = "nix";
+      group = "users";
+      extraGroups = [ "wheel" "networkmanager" "docker" "video" "adbusers" "plugdev" ];
+      shell = pkgs.zsh;
+    };
   };
 
   xdg.mime.defaultApplications = {
@@ -258,6 +234,5 @@
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "22.05"; # Did you read the comment?
-
 }
 
