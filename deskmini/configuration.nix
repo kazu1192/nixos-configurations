@@ -1,31 +1,38 @@
-{ config, pkgs, callPackage, ... }:
+{ config, pkgs, lib, ... }:
 
+let
+  user = "nixos";
+  password = "nix";
+  group = "users";
+  extraGroups = [ "wheel" "networkmanager" "docker" "video" "adbusers" "plugdev" ];
+  hostId = "007f0200";
+  hostname = "deskmini";
+  allowedTCPPorts = [ 22 2002 3389 5900 6600 ];
+  allowedUDPPorts = [ 22 2002 3389 5900 6600 ];
+in
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-      # ./i3wm.nix
-      ./sway.nix
-    ];
+  imports = [ 
+    # Include the results of the hardware scan.
+    ./hardware-configuration.nix
+    # ./i3wm.nix
+    ./sway.nix
+  ];
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
   networking = {
-    hostName = "nixox-dm";
-    useDHCP = false;
-    interfaces = {
-      wlp2s0.useDHCP = true;
-    };
-    networkmanager.enable = true;
+    hostId = hostId;
+    hostName = hostname;
+    useDHCP = true;
   };
 
   networking.firewall = {
     enable = true;
     checkReversePath = "loose";
-    allowedTCPPorts = [ 22 2002 3389 6600 ];
-    allowedUDPPorts = [ 22 2002 6600 ];
+    allowedTCPPorts = allowedTCPPorts;
+    allowedUDPPorts = allowedUDPPorts;
   };
 
   location = {
@@ -36,8 +43,9 @@
   i18n = {
     defaultLocale = "en_US.UTF-8";
     inputMethod = {
-      enabled = "fcitx";
-      fcitx.engines = with pkgs.fcitx-engines; [ mozc ];
+      enabled = "fcitx5";
+      # fcitx.engines = with pkgs.fcitx-engines; [ mozc ];
+      fcitx5.addons = with pkgs; [ fcitx5-mozc ];
     };
   };
   
@@ -64,11 +72,6 @@
   time.timeZone = "Asia/Tokyo";
   services.timesyncd.enable = true;
 
-  # Cleanup to preserve space
-  nix.gc.automatic = true;
-  nix.gc.options = "--delete-order-than 7d";
-  boot.cleanTmpDir = true;
-
   nixpkgs.config = {
     allowUnfree = true;
     allowUnsupportedSystem = true;
@@ -81,12 +84,13 @@
     pavucontrol ffmpeg
     networkmanagerapplet
     cmake gcc gnumake nodejs cargo
+    fzf peco tree
     git gh tig ghq
     vim neovim 
-    tmux zellij
+    vscode
+    tmux screen zellij
     wget zip unzip
     exa bat fd procs ripgrep
-    fzf peco tree
     termite alacritty
     zsh fish screenfetch
     rofi conky nitrogen picom
@@ -95,15 +99,24 @@
     vivaldi-ffmpeg-codecs
     # vivaldi-widevine
     tailscale
-    vscode
     apktool android-tools android-studio
     jetbrains.idea-community
   ];
 
+  environment.variables = {
+    EDITOR = "vim";
+    VISUAL = "vim";
+  };
+
   environment.pathsToLink = [ "/libexec" ];
 
+  # Cleanup to preserve space
+  nix.gc.automatic = true;
+  nix.gc.options = "--delete-order-than 7d";
+  boot.cleanTmpDir = true;
+
   # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
+  # s remote desktoptarted in user sessions.
   # programs.mtr.enable = true;
   # programs.gnupg.agent = {
   #   enable = true;
@@ -111,6 +124,8 @@
   #   pinentryFlavor = "gnome3";
   # };
 
+  programs.bash.enableCompletion = true;
+  programs.ssh.startAgent = true;
   programs.light.enable = true;
   programs.java.enable = true;
   programs.adb.enable = true;
@@ -151,7 +166,9 @@
   services.cron = {
     enable = true;
     systemCronJobs = [
-      "* 23 * * *  root  cat /etc/nixos/configuration.nix > /home/host/.dotfiles/nixos/configuration.nix"
+      "* 22 * * * nixos cat /etc/nixos/configuration.nix > /home/nixos/ghq/github.com/kazu1192/nixos-configurations/deskmini/configuration.nix"
+      "* 22 * * * nixos cat /etc/nixos/i3wm.nix          > /home/nixos/ghq/github.com/kazu1192/nixos-configurations/deskmini/i3wm.nix"
+      "* 22 * * * nixos cat /etc/nixos/sway.nix          > /home/nixos/ghq/github.com/kazu1192/nixos-configurations/deskmini/sway.nix"
     ];
   };
 
@@ -163,20 +180,20 @@
 
   users.motd = "Hello NixOS!";
   users.users = {
-    host = {
+    ${user} = {
       isNormalUser = true;
       createHome = true;
-      password = "nix";
-      group = "users";
-      extraGroups = [ "wheel" "networkmanager" "docker" "video" "adbusers" "plugdev" ];
+      password = password;
+      group = group;
+      extraGroups = extraGroups;
       shell = pkgs.zsh;
     };
-    nixos = {
+
+    host = { # old user
       isNormalUser = true;
-      createHome = true;
-      password = "nix";
-      group = "users";
-      extraGroups = [ "wheel" "networkmanager" "docker" "video" "adbusers" "plugdev" ];
+      password = password;
+      group = group;
+      extraGroups = extraGroups;
       shell = pkgs.zsh;
     };
   };

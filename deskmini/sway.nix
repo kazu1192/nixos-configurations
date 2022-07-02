@@ -27,11 +27,20 @@ let
   };
 in
 {
+  imports = [ 
+    ./systemd/user/sway-session.target.nix
+    ./systemd/user/swayvd.service.nix
+    ./systemd/user/wayvnc.service.nix
+  ];
+
   environment.systemPackages = with pkgs; [
     sway
     dbus-sway-environment
     configure-gtk
     wayland
+    waybar
+    wofi
+    wayvnc # remote desktop
     glib # gsettings
     dracula-theme # gtk theme
     swaylock
@@ -42,6 +51,12 @@ in
     bemenu # wayland clone on dmenu
     mako # notification system developed by swaywm manitainer
   ];
+
+  environment.variables = {
+    GDK_BACKEND = "x11 code";
+    WINIT_UNIT_BACKEND = "x11";
+    MOZ_ENABLE_WAYLAND = "1"; # Firefox
+  };
 
   environment.sessionVariables = {
     GTK_USE_PORTAL = "1";
