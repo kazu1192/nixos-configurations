@@ -50,22 +50,8 @@ in
   };
   
   console = {
-    font = "LatArCyrHeb-16";
+    font = "LatTerminus16";
     keyMap = "us";
-  };
-
-  fonts = {
-    fontDir.enable = true;
-    enableGhostscriptFonts = true;
-    fonts = with pkgs; [
-      noto-fonts
-      noto-fonts-cjk
-      noto-fonts-emoji
-      fira-code
-      fira-code-symbols
-      font-awesome
-      nerdfonts
-    ];
   };
 
   # Set your time zone.
@@ -77,30 +63,78 @@ in
     allowUnsupportedSystem = true;
   };
 
+  fonts.fonts = with pkgs; [
+    fira-code
+    noto-fonts-cjk
+    cooper-hewitt
+    ibm-plex
+    jetbrains-mono
+    iosevka
+    spleen
+    powerline-fonts
+    font-awesome
+    nerdfonts
+  ];
+
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-    nixos-option
-    pavucontrol ffmpeg
-    networkmanagerapplet
-    cmake gcc gnumake nodejs cargo
-    fzf peco tree
-    git gh tig ghq
-    vim neovim 
+    cmake
+    gcc 
+    gnumake 
+    nodejs 
+    cargo
+    fzf 
+    peco 
+    tree
+    git 
+    gh 
+    tig
+    ghq
+    vim
+    neovim 
     vscode
-    tmux screen zellij
-    wget zip unzip
-    exa bat fd procs ripgrep
-    termite alacritty
-    zsh fish screenfetch
-    rofi conky nitrogen picom
-    dunst parcellite volumeicon
-    chromium firefox vivaldi
+    tmux 
+    screen
+    zellij
+    wget
+    zip
+    unzip
+    exa
+    bat 
+    fd
+    procs 
+    ripgrep
+    termite
+    alacritty
+    wezterm
+    screenfetch
+    rofi
+    conky
+    nitrogen
+    imv
+    picom
+    dunst
+    ffmpeg
+    parcellite
+    networkmanagerapplet
+    pavucontrol 
+    volumeicon
+    chromium
+    firefox
+    vivaldi
     vivaldi-ffmpeg-codecs
     # vivaldi-widevine
     tailscale
-    apktool android-tools android-studio
+    apktool
+    android-tools
+    android-studio
     jetbrains.idea-community
+    # nix
+    nixos-option
+    nixpkgs-lint
+    nixpkgs-fmt
+    nixfmt
   ];
 
   environment.variables = {
@@ -112,7 +146,7 @@ in
 
   # Cleanup to preserve space
   nix.gc.automatic = true;
-  nix.gc.options = "--delete-order-than 7d";
+  nix.gc.options   = "--delete-order-than 7d";
   boot.cleanTmpDir = true;
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -125,19 +159,23 @@ in
   # };
 
   programs.bash.enableCompletion = true;
-  programs.ssh.startAgent = true;
-  programs.light.enable = true;
-  programs.java.enable = true;
-  programs.adb.enable = true;
+  programs.zsh.enable            = true;
+  programs.fish.enable           = true;
+  programs.ssh.startAgent        = true;
+  programs.light.enable          = true;
+  programs.java.enable           = true;
+  programs.adb.enable            = true;
+  
+  qt5.platformTheme              = "qt5ct";
 
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
   services.openssh = {
-    enable = true;
-    ports = [ 2002 ];
+    enable                 = true;
+    ports                  = [ 2002 ];
     passwordAuthentication = false;
-    permitRootLogin = "no";
+    permitRootLogin        = "no";
   };
 
   # Enable CUPS to print documents.
@@ -145,6 +183,11 @@ in
 
   # Enable sound.
   sound.enable = true;
+  # hardware.pulseaudio.enable = true;
+
+  # Graphics settings
+  services.xserver.videoDrivers = [ "nouverau" ];
+  hardware.opengl.driSupport32Bit = true;
 
   # Enable bluetooth.
   hardware.bluetooth.enable = true;
@@ -153,12 +196,11 @@ in
   services.redshift = {
     enable = true;
     brightness = {
-      # Note the string values below.
-      day = "1";
+      day   = "1";
       night = "0.8";
     };
     temperature = {
-      day = 5500;
+      day   = 5500;
       night = 3700;
     };
   };
@@ -169,6 +211,7 @@ in
       "* 22 * * * nixos cat /etc/nixos/configuration.nix > /home/nixos/ghq/github.com/kazu1192/nixos-configurations/deskmini/configuration.nix"
       "* 22 * * * nixos cat /etc/nixos/i3wm.nix          > /home/nixos/ghq/github.com/kazu1192/nixos-configurations/deskmini/i3wm.nix"
       "* 22 * * * nixos cat /etc/nixos/sway.nix          > /home/nixos/ghq/github.com/kazu1192/nixos-configurations/deskmini/sway.nix"
+      "0 1 * * *  root  rtcwake -m off -s 28800"
     ];
   };
 
@@ -198,5 +241,7 @@ in
     };
   };
 
+  # system.autoUpgrade.enable = true;
+  # system.autoUpgrade.allowReboot = true;
   system.stateVersion = "22.05";
 }

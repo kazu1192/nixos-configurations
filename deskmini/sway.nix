@@ -33,33 +33,36 @@ in
     ./systemd/user/wayvnc.service.nix
   ];
 
-  environment.systemPackages = with pkgs; [
-    sway
-    dbus-sway-environment
-    configure-gtk
-    wayland
-    waybar
-    wofi
-    wayvnc # remote desktop
-    glib # gsettings
-    dracula-theme # gtk theme
-    swaylock
-    swayidle
-    grim # sceenshot functionality
-    slurp # screenshot functionality
-    wl-clipboard # wl-copy and wl-paste for copy/paste from stdin / stdout
-    bemenu # wayland clone on dmenu
-    mako # notification system developed by swaywm manitainer
-  ];
-
-  environment.variables = {
-    GDK_BACKEND = "x11 code";
-    WINIT_UNIT_BACKEND = "x11";
-    MOZ_ENABLE_WAYLAND = "1"; # Firefox
-  };
-
   environment.sessionVariables = {
     GTK_USE_PORTAL = "1";
+  };
+
+  # enable sway window manager
+  programs.sway = {
+    enable = true;
+    wrapperFeatures.gtk = true; # so that gtk works properly
+    extraPackages = with pkgs; [
+      dbus-sway-environment
+      configure-gtk
+      wofi
+      wayvnc # remote desktop
+      glib # gsettings
+      dracula-theme # gtk theme
+      waybar
+      swaylock
+      swayidle
+      grim # sceenshot functionality
+      slurp # screenshot functionality
+      wl-clipboard # wl-copy and wl-paste for copy/paste from stdin / stdout
+      bemenu # wayland clone on dmenu
+      mako # notification system developed by swaywm manitainer
+    ];
+    extraSessionCommands = ''
+      export _JAVA_AWT_WM_NONREPARENTING="1"
+      export MOZ_ENABLE_WAYLAND="1"; # Firefox
+      export GDK_BACKEND="x11 code";
+      export WINIT_UNIT_BACKEND="x11";
+    '';
   };
 
   services.pipewire = {
@@ -69,16 +72,21 @@ in
   };
 
   services.dbus.enable = true;
+
+  services.xserver.enable = true;
+  services.xserver.displayManager = {
+    lightdm.enable = true;
+    defaultSession = "sway";
+    autoLogin = {
+      enable = true;
+      user = "nixos";
+    };
+  };
+
   xdg.portal = {
     enable = true;
     wlr.enable = true;
     # gtk portal needed to make gtk apps happy
     extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-  };
-
-  # enable sway window manager
-  programs.sway = {
-    enable = true;
-    wrapperFeatures.gtk = true;
   };
 }
