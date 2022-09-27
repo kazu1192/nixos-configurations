@@ -2,6 +2,8 @@
 
 {
   systemd.user.services.swayvd = {
+    enable = true;
+
     # [Unit]
     description = "a tool to set virtual display on Sway session";
     bindsTo     = [ "sway-session.target" ];
@@ -10,7 +12,7 @@
     # [Service]
     serviceConfig = {
       Type           = "oneshot";
-      ExecStart      = "/run/current-system/sw/bin/swaymsg crate_output HEADLESS-1"; 
+      ExecStart      = "/run/current-system/sw/bin/swaymsg create_output HEADLESS-1"; 
     };
 
     # [Install]

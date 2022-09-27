@@ -2,6 +2,8 @@
 
 {
   systemd.user.services.wayvnc = {
+    enable = true;
+
     # [Unit]
     description = "A VNC server for wlroots base Wayland compositors";
     bindsTo     = [ "sway-session.target" ];
@@ -11,7 +13,7 @@
     # [Service]
     serviceConfig = {
       Type           = "simple";
-      ExecStart      = "/run/current-system/sw/bin/wayvnc --output=HEADLESS-1 0.0.0.0"; 
+      ExecStart      = "/run/current-system/sw/bin/wayvnc --output=HEADLESS-1"; 
       Restart        = "always";
       RestartSec     = "1";
       TimeoutStopSec = "10";

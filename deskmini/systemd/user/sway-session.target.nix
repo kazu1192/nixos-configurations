@@ -2,6 +2,8 @@
 
 {
   systemd.user.targets.sway-session = {
+    enable = true;
+
     # [Unit]
     description   = "Sway compositor session";
     documentation = [ "man:systemd.special" ];
